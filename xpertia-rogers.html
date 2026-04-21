@@ -742,6 +742,35 @@ body { background:var(--dark); color:var(--text); font-family:'DM Sans',sans-ser
   <div class="reveal-card">
     <div class="rv-company" id="rv-company"></div>
     <div class="rv-position" id="rv-position"></div>
+    <svg id="rv-curve" viewBox="0 0 500 120" width="100%" style="margin:16px 0 8px;">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+      <!-- Segment fills -->
+      <path id="fill-1" d="M10,110 Q40,110 60,20 L60,110 Z" opacity="0.15"/>
+      <path id="fill-2" d="M60,20 Q80,5 110,8 L110,110 L60,110 Z" opacity="0.15"/>
+      <path id="fill-3" d="M110,8 Q160,2 210,15 L210,110 L110,110 Z" opacity="0.15"/>
+      <path id="fill-4" d="M210,15 Q270,30 320,55 L320,110 L210,110 Z" opacity="0.15"/>
+      <path id="fill-5" d="M320,55 Q390,85 490,95 L490,110 L320,110 Z" opacity="0.15"/>
+      <!-- Bell curve -->
+      <path d="M10,110 Q40,110 60,20 Q80,5 110,8 Q160,2 210,15 Q270,30 320,55 Q390,85 490,95" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+      <!-- Segment dividers -->
+      <line x1="60" y1="15" x2="60" y2="112" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="110" y1="6" x2="110" y2="112" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="210" y1="13" x2="210" y2="112" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="320" y1="53" x2="320" y2="112" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <!-- Segment labels -->
+      <text x="35" y="108" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="DM Sans,sans-serif">Innovadores</text>
+      <text x="85" y="108" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="DM Sans,sans-serif">Tempranos</text>
+      <text x="160" y="108" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="DM Sans,sans-serif">May. Temprana</text>
+      <text x="265" y="108" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="DM Sans,sans-serif">May. Tardía</text>
+      <text x="405" y="108" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.4)" font-family="DM Sans,sans-serif">Rezagados</text>
+      <!-- Marker (position updated by JS) -->
+      <circle id="rv-marker" cx="35" cy="110" r="6" fill="white" opacity="0"/>
+      <line id="rv-marker-line" x1="35" y1="0" x2="35" y2="104" stroke="white" stroke-width="1.5" stroke-dasharray="3,3" opacity="0"/>
+    </svg>
     <div class="rv-desc" id="rv-desc"></div>
     <div class="rv-insight" id="rv-insight"></div>
     <div class="rv-nav">
@@ -938,6 +967,22 @@ function revealNext() {
 function revealPrev() {
   if(revealIdx > 0) { revealIdx--; showRevealCard(); }
 }
+const CURVE_POSITIONS = {
+  1: { cx: 35,  cy: 75  },
+  2: { cx: 85,  cy: 15  },
+  3: { cx: 160, cy: 10  },
+  4: { cx: 265, cy: 38  },
+  5: { cx: 405, cy: 78  }
+};
+
+const FILL_COLORS = {
+  1: '#2e8b6e',
+  2: '#4a6fa5',
+  3: '#d4a847',
+  4: '#c0392b',
+  5: '#6b4c8a'
+};
+
 function showRevealCard() {
   const r = allResults[revealIdx];
   const p = POSITIONS[r.pos];
@@ -951,6 +996,34 @@ function showRevealCard() {
   insightEl.style.borderLeftColor = p.insightColor;
   const isLast = revealIdx === allResults.length - 1;
   document.getElementById('btn-rv-next').textContent = isLast ? 'Finalizar' : 'Siguiente →';
+
+  // Update curve fills
+  [1,2,3,4,5].forEach(i => {
+    const fill = document.getElementById('fill-'+i);
+    if(fill) {
+      fill.setAttribute('fill', FILL_COLORS[i]);
+      fill.setAttribute('opacity', i === r.pos ? '0.45' : '0.08');
+    }
+  });
+
+  // Animate marker
+  const cp = CURVE_POSITIONS[r.pos];
+  const marker = document.getElementById('rv-marker');
+  const mline = document.getElementById('rv-marker-line');
+  if(marker && cp) {
+    marker.setAttribute('cx', cp.cx);
+    marker.setAttribute('cy', cp.cy);
+    marker.setAttribute('fill', p.color);
+    marker.setAttribute('r', '7');
+    marker.setAttribute('opacity', '1');
+    if(mline) {
+      mline.setAttribute('x1', cp.cx);
+      mline.setAttribute('x2', cp.cx);
+      mline.setAttribute('y2', cp.cy - 8);
+      mline.setAttribute('stroke', p.color);
+      mline.setAttribute('opacity', '0.6');
+    }
+  }
 }
 
 function copyFormsLink() {
