@@ -831,10 +831,16 @@ function showSector(id, btn) {
 
 function parseJSON(rows) {
   if(!Array.isArray(rows) || rows.length === 0) return [];
+
   const allKeys = Object.keys(rows[0]);
-  const findCol = prefix => allKeys.find(k => k.trim().toLowerCase().includes(prefix.toLowerCase())) || '';
-  const COL_COMPANY = findCol('nombre de la empresa') || findCol('nombre de tu empresa') || findCol('empresa');
-  const COL_ANSWER = findCol('pensando honestamente');
+
+  const COL_COMPANY = allKeys.find(k => k.trim().toLowerCase().includes('nombre')) || '';
+  const COL_ANSWER = allKeys.find(k => k.trim().toLowerCase().includes('pensando')) || '';
+
+  if(!COL_COMPANY || !COL_ANSWER) {
+    console.warn('Columnas no encontradas. Keys:', allKeys);
+    return [];
+  }
 
   return rows.map(row => {
     const company = (row[COL_COMPANY] || '').toString().trim();
