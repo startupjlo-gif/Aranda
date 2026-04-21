@@ -832,18 +832,29 @@ function showSector(id, btn) {
 function parseJSON(rows) {
   if(!Array.isArray(rows) || rows.length === 0) return [];
   const allKeys = Object.keys(rows[0]);
-  const findCol = prefix => allKeys.find(k => k.trim().startsWith(prefix.trim())) || '';
-  const COL_COMPANY = findCol('Nombre de Tu Empresa');
-  const COL_ANSWER = findCol('Pensando honestamente');
+  const findCol = prefix => allKeys.find(k => k.trim().toLowerCase().includes(prefix.toLowerCase())) || '';
+  const COL_COMPANY = findCol('nombre de la empresa') || findCol('nombre de tu empresa') || findCol('empresa');
+  const COL_ANSWER = findCol('pensando honestamente');
 
   return rows.map(row => {
     const company = (row[COL_COMPANY] || '').toString().trim();
     if(!company) return null;
     const answer = (row[COL_ANSWER] || '').toString().trim();
-    let pos = 3;
-    for(const m of ANSWER_MAP) {
-      if(answer.startsWith(m.prefix)) { pos = m.pos; break; }
-    }
+    if(!answer) return null;
+
+    const choices = answer.split(',').map(s => s.trim()).filter(Boolean);
+    let totalPos = 0;
+    let count = 0;
+    choices.forEach(choice => {
+      for(const m of ANSWER_MAP) {
+        if(choice.toLowerCase().startsWith(m.prefix.toLowerCase().substring(0,15))) {
+          totalPos += m.pos;
+          count++;
+          break;
+        }
+      }
+    });
+    const pos = count > 0 ? Math.round(totalPos / count) : 3;
     return { company, answer, pos };
   }).filter(Boolean);
 }
