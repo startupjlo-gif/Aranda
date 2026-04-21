@@ -745,15 +745,20 @@ function splitCSVLine(line) {
 
 // ── JSON PARSER (Apps Script) ──
 function parseJSON(rows) {
-  if(!Array.isArray(rows)) return [];
+  if(!Array.isArray(rows) || rows.length === 0) return [];
   const results = [];
-  const COL_COMPANY = 'Nombre de Tu Empresa:';
+
+  const allKeys = Object.keys(rows[0]);
+
+  const findCol = (prefix) => allKeys.find(k => k.trim().startsWith(prefix)) || '';
+
+  const COL_COMPANY = findCol('Nombre de Tu Empresa');
   const Q_COLS = [
-    'Os enteráis de que un competidor directo lleva 6 meses usando IA para optimizar su gestión o producción. ¿Cuáles son las dos reacciones que más se parecen a vuestra empresa?',
-    'Habéis decidido implementar una herramienta de IA. Tres personas del equipo dicen abiertamente que no la van a usar. ¿Cuáles serían vuestras dos primeras reacciones?',
-    'Lleváis un mes con una IA en pruebas. Los resultados son prometedores pero el equipo la usa de forma muy irregular. ¿Qué haríais?',
-    'El gerente pregunta: ¿en qué área debería impactar más la IA en vuestra empresa en los próximos 2 años? ¿Cuáles son las dos respuestas que más representan a vuestra empresa?',
-    'Probasteis una herramienta de IA hace unos meses y no funcionó. El equipo perdió tiempo y confianza. Ahora surge una oportunidad similar. ¿Cómo afrontaríais esta segunda vez?'
+    findCol('Os enter'),
+    findCol('Habéis decidido'),
+    findCol('Lleváis un mes'),
+    findCol('El gerente pregunta'),
+    findCol('Probasteis')
   ];
 
   rows.forEach(row => {
@@ -761,6 +766,7 @@ function parseJSON(rows) {
     if(!company) return;
     const scores = {A:0, B:0, C:0, D:0};
     Q_COLS.forEach(col => {
+      if(!col) return;
       const cellVal = (row[col] || '').toString().trim();
       if(!cellVal) return;
       const chosen = cellVal.split(',').map(s => s.trim());
