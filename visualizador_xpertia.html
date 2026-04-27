@@ -609,7 +609,47 @@ function getTools(tipo, quad) {
   return section || { action: 'Revisar manualmente', tools: [] };
 }
 
-// ─── LOAD DATA ────────────────────────────────────────────────────────────
+// ─── LOAD DATA con múltiples proxies ─────────────────────────────────────
+async function fetchCSV() {
+  const proxies = [
+    // Proxy 1: corsproxy.io
+    async () => {
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(CSV_URL)}`);
+      if (!res.ok) throw new Error('corsproxy failed');
+      return await res.text();
+    },
+    // Proxy 2: allorigins raw
+    async () => {
+      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(CSV_URL)}`);
+      if (!res.ok) throw new Error('allorigins raw failed');
+      return await res.text();
+    },
+    // Proxy 3: allorigins get
+    async () => {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(CSV_URL)}`);
+      if (!res.ok) throw new Error('allorigins get failed');
+      const json = await res.json();
+      return json.contents;
+    },
+    // Proxy 4: thingproxy
+    async () => {
+      const res = await fetch(`https://thingproxy.freeboard.io/fetch/${CSV_URL}`);
+      if (!res.ok) throw new Error('thingproxy failed');
+      return await res.text();
+    }
+  ];
+
+  for (const tryProxy of proxies) {
+    try {
+      const text = await tryProxy();
+      if (text && text.includes(',')) return text;
+    } catch(e) {
+      console.warn('Proxy falló, intentando siguiente...', e.message);
+    }
+  }
+  throw new Error('Todos los proxies fallaron');
+}
+
 async function loadData() {
   const msg = document.getElementById('statusMsg');
   const sel = document.getElementById('empresaSelect');
@@ -617,10 +657,8 @@ async function loadData() {
   msg.className = 'status';
 
   try {
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(CSV_URL)}`;
-    const res = await fetch(proxy);
-    const json = await res.json();
-    const { hdrs, rows } = parseCSV(json.contents);
+    const csvText = await fetchCSV();
+    const { hdrs, rows } = parseCSV(csvText);
     headers = hdrs;
     allRows = rows.filter(r => r[COL.nombre] && r[COL.nombre].trim());
 
@@ -654,9 +692,9 @@ async function loadData() {
     msg.className = 'status ok';
 
   } catch(e) {
-    msg.textContent = '✗ Error al cargar. Verifica que el Sheet está publicado como CSV.';
+    msg.textContent = '✗ Error al cargar. Intenta de nuevo o verifica que el Sheet está publicado como CSV público.';
     msg.className = 'status err';
-    console.error(e);
+    console.error('Error cargando CSV:', e);
   }
 }
 
