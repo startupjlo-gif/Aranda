@@ -453,7 +453,7 @@
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRB8hx8PhvsFyzRnxFiept9qgWwqk5ZuQmH89CybKubkkc5ENWbYefMm086uGQgkoQcBIvNtMHI7MXp/pub?gid=1421908603&single=true&output=csv';
+const CSV_URL = 'https://script.google.com/macros/s/AKfycbzqukE7WkskPuoR-NQt5tiQJ3I9Tw57HHycMXgQ3k_rPs6x2-qEAGDSN776q-wn6BzvJQ/exec';
 
 // ─── COLUMN MAPPING (exact header names from your sheet) ──────────────────
 const COL = {
@@ -609,45 +609,13 @@ function getTools(tipo, quad) {
   return section || { action: 'Revisar manualmente', tools: [] };
 }
 
-// ─── LOAD DATA con múltiples proxies ─────────────────────────────────────
+// ─── LOAD DATA — directo via Apps Script (sin proxies externos) ───────────
 async function fetchCSV() {
-  const proxies = [
-    // Proxy 1: corsproxy.io
-    async () => {
-      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(CSV_URL)}`);
-      if (!res.ok) throw new Error('corsproxy failed');
-      return await res.text();
-    },
-    // Proxy 2: allorigins raw
-    async () => {
-      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(CSV_URL)}`);
-      if (!res.ok) throw new Error('allorigins raw failed');
-      return await res.text();
-    },
-    // Proxy 3: allorigins get
-    async () => {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(CSV_URL)}`);
-      if (!res.ok) throw new Error('allorigins get failed');
-      const json = await res.json();
-      return json.contents;
-    },
-    // Proxy 4: thingproxy
-    async () => {
-      const res = await fetch(`https://thingproxy.freeboard.io/fetch/${CSV_URL}`);
-      if (!res.ok) throw new Error('thingproxy failed');
-      return await res.text();
-    }
-  ];
-
-  for (const tryProxy of proxies) {
-    try {
-      const text = await tryProxy();
-      if (text && text.includes(',')) return text;
-    } catch(e) {
-      console.warn('Proxy falló, intentando siguiente...', e.message);
-    }
-  }
-  throw new Error('Todos los proxies fallaron');
+  const res = await fetch(CSV_URL);
+  if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+  const text = await res.text();
+  if (!text || !text.includes(',')) throw new Error('Respuesta vacía o inválida');
+  return text;
 }
 
 async function loadData() {
