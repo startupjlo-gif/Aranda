@@ -342,6 +342,95 @@
   .empty-state h2 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
   .empty-state p { font-size: 14px; color: var(--text2); }
 
+  /* TABS NAV */
+  .nav-tabs {
+    display: flex; gap: 4px; margin-bottom: 2rem;
+    border-bottom: 1.5px solid var(--border2); padding-bottom: 0;
+  }
+  .nav-tab {
+    padding: 0.65rem 1.25rem; font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; background: none; color: var(--text3);
+    border-bottom: 2px solid transparent; margin-bottom: -1.5px;
+    transition: all 0.15s; letter-spacing: 0.01em;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CONSOLIDADO */
+  .cons-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: 12px; padding: 1rem 1.25rem; text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800;
+    line-height: 1; margin-bottom: 4px;
+  }
+  .stat-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-zombi .stat-num { color: var(--zombi); }
+  .stat-cuello .stat-num { color: var(--cuello); }
+  .stat-oro .stat-num { color: var(--oro); }
+  .stat-grasa .stat-num { color: var(--grasa); }
+  .stat-total .stat-num { color: var(--accent); }
+
+  /* CONSOLIDADO MATRIX */
+  .cons-matrix-axes {
+    display: grid; grid-template-columns: 28px 1fr 1fr;
+    grid-template-rows: 1fr 1fr 28px;
+    gap: 8px; min-height: 420px; margin-bottom: 1.5rem;
+  }
+  .cons-quadrant {
+    border-radius: 14px; padding: 1rem 1.25rem;
+    overflow-y: auto; max-height: 400px;
+  }
+  .cons-q-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem; position: sticky; top: 0;
+    background: inherit; padding-bottom: 6px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .cons-q-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cons-q-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .cons-task-item {
+    background: rgba(255,255,255,0.7); border-radius: 8px;
+    padding: 0.5rem 0.75rem; margin-bottom: 6px;
+    border: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .cons-task-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 2px; }
+  .cons-task-empresa { font-size: 11px; color: var(--text3); }
+
+  .cq-oro    { background: var(--oro-bg);    border: 0.5px solid var(--oro-border); }
+  .cq-oro .cons-q-label { color: var(--oro); }
+  .cq-oro .cons-q-count { background: var(--oro-bg); color: var(--oro); border: 0.5px solid var(--oro-border); }
+
+  .cq-cuello { background: var(--cuello-bg); border: 0.5px solid var(--cuello-border); }
+  .cq-cuello .cons-q-label { color: var(--cuello); }
+  .cq-cuello .cons-q-count { background: var(--cuello-bg); color: var(--cuello); border: 0.5px solid var(--cuello-border); }
+
+  .cq-grasa  { background: var(--grasa-bg);  border: 0.5px solid var(--grasa-border); }
+  .cq-grasa .cons-q-label { color: var(--grasa); }
+  .cq-grasa .cons-q-count { background: var(--grasa-bg); color: var(--grasa); border: 0.5px solid var(--grasa-border); }
+
+  .cq-zombi  { background: var(--zombi-bg);  border: 0.5px solid var(--zombi-border); }
+  .cq-zombi .cons-q-label { color: var(--zombi); }
+  .cq-zombi .cons-q-count { background: var(--zombi-bg); color: var(--zombi); border: 0.5px solid var(--zombi-border); }
+
+  /* BARRERA CONSOLIDADA */
+  .barrera-section { margin-top: 1.5rem; }
+  .barrera-bars { display: flex; flex-direction: column; gap: 0.6rem; }
+  .barrera-row { display: flex; align-items: center; gap: 0.75rem; }
+  .barrera-label { font-size: 12px; color: var(--text2); min-width: 220px; }
+  .barrera-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .barrera-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.6s ease; }
+  .barrera-count { font-size: 12px; font-weight: 600; color: var(--text); min-width: 24px; text-align: right; }
+
   .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
 
   @media (max-width: 640px) {
@@ -365,6 +454,15 @@
       <div style="font-size:12px; color:var(--text3);">Programa 2026</div>
     </div>
   </div>
+
+  <!-- TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('empresa')">📊 Por empresa</button>
+    <button class="nav-tab" onclick="switchTab('consolidado')">🌐 Consolidado del grupo</button>
+  </div>
+
+  <!-- TAB: POR EMPRESA -->
+  <div class="tab-panel active" id="tab-empresa">
 
   <!-- SEARCH -->
   <div class="search-section">
@@ -439,6 +537,79 @@
     <h2>Esperando respuestas</h2>
     <p>Cuando los participantes envíen el formulario,<br>aparecerán aquí para proyectarlos en pantalla.</p>
   </div>
+
+  </div><!-- /tab-empresa -->
+
+  <!-- TAB: CONSOLIDADO -->
+  <div class="tab-panel" id="tab-consolidado">
+
+    <div class="section-title" style="margin-bottom:1rem;">Resumen del grupo — todas las empresas</div>
+
+    <!-- Stats -->
+    <div class="cons-stats">
+      <div class="stat-card stat-total"><div class="stat-num" id="cs-total">0</div><div class="stat-label">Tareas totales</div></div>
+      <div class="stat-card stat-zombi"><div class="stat-num" id="cs-zombi">0</div><div class="stat-label">🧟 Zombis</div></div>
+      <div class="stat-card stat-cuello"><div class="stat-num" id="cs-cuello">0</div><div class="stat-label">⚡ Cuellos</div></div>
+      <div class="stat-card stat-oro"><div class="stat-num" id="cs-oro">0</div><div class="stat-label">🏆 Oro</div></div>
+      <div class="stat-card stat-grasa"><div class="stat-num" id="cs-grasa">0</div><div class="stat-label">🗑️ Grasa</div></div>
+    </div>
+
+    <!-- Matriz consolidada -->
+    <div class="section-title" style="margin-bottom:0.85rem;">Mapa consolidado de cuadrantes</div>
+    <div class="cons-matrix-axes">
+      <div class="axis-v"><span>Alto valor → Bajo valor</span></div>
+
+      <div class="cons-quadrant cq-oro">
+        <div class="cons-q-header">
+          <div class="cons-q-label">🏆 Oro — Potenciar</div>
+          <div class="cons-q-count" id="cc-oro-count">0</div>
+        </div>
+        <div id="cc-oro"></div>
+      </div>
+
+      <div class="cons-quadrant cq-cuello">
+        <div class="cons-q-header">
+          <div class="cons-q-label">⚡ Cuello — Sistematizar</div>
+          <div class="cons-q-count" id="cc-cuello-count">0</div>
+        </div>
+        <div id="cc-cuello"></div>
+      </div>
+
+      <div class="cons-quadrant cq-grasa">
+        <div class="cons-q-header">
+          <div class="cons-q-label">🗑️ Grasa — Eliminar</div>
+          <div class="cons-q-count" id="cc-grasa-count">0</div>
+        </div>
+        <div id="cc-grasa"></div>
+      </div>
+
+      <div class="cons-quadrant cq-zombi">
+        <div class="cons-q-header">
+          <div class="cons-q-label">🧟 Zombi — Automatizar</div>
+          <div class="cons-q-count" id="cc-zombi-count">0</div>
+        </div>
+        <div id="cc-zombi"></div>
+      </div>
+
+      <div class="axis-h">
+        <span>Baja frecuencia</span>
+        <span>Alta frecuencia</span>
+      </div>
+    </div>
+
+    <!-- Barreras consolidadas -->
+    <div class="barrera-section">
+      <div class="section-title" style="margin-bottom:0.85rem;">Principal barrera declarada por el grupo</div>
+      <div class="barrera-bars" id="cons-barreras"></div>
+    </div>
+
+    <div class="empty-state" id="emptyConsolidado" style="display:none;">
+      <div class="es-icon">📊</div>
+      <h2>Sin datos todavía</h2>
+      <p>Cuando haya respuestas aparecerá el consolidado del grupo.</p>
+    </div>
+
+  </div><!-- /tab-consolidado -->
 
 </div>
 
@@ -896,6 +1067,88 @@ function showEmpresa() {
   // show
   document.getElementById('result').className = 'result visible';
   document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── SWITCH TAB ───────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'consolidado') renderConsolidado();
+}
+
+// ─── CONSOLIDADO ──────────────────────────────────────────────────────────
+function renderConsolidado() {
+  if (allRows.length === 0) {
+    document.getElementById('emptyConsolidado').style.display = 'block';
+    return;
+  }
+  document.getElementById('emptyConsolidado').style.display = 'none';
+
+  // Recopilar todas las tareas de todas las empresas
+  const allTasks = [];
+  allRows.forEach(row => {
+    const empresa = row[COL.nombre] || 'Sin nombre';
+    const tasks = [
+      { desc: row[COL.t1_desc], freq: row[COL.t1_freq], valor: row[COL.t1_valor], tipo: row[COL.t1_tipo] },
+      { desc: row[COL.t2_desc], freq: row[COL.t2_freq], valor: row[COL.t2_valor], tipo: row[COL.t2_tipo] }
+    ].filter(t => t.desc && t.desc.trim());
+
+    tasks.forEach(t => {
+      t.quad = classify(t.freq, t.valor);
+      t.empresa = empresa;
+      allTasks.push(t);
+    });
+  });
+
+  // Contar por cuadrante
+  const counts = { zombi: 0, cuello: 0, oro: 0, grasa: 0 };
+  allTasks.forEach(t => counts[t.quad]++);
+
+  // Stats
+  document.getElementById('cs-total').textContent  = allTasks.length;
+  document.getElementById('cs-zombi').textContent  = counts.zombi;
+  document.getElementById('cs-cuello').textContent = counts.cuello;
+  document.getElementById('cs-oro').textContent    = counts.oro;
+  document.getElementById('cs-grasa').textContent  = counts.grasa;
+
+  // Cuadrantes
+  ['oro','cuello','grasa','zombi'].forEach(q => {
+    const tasksInQ = allTasks.filter(t => t.quad === q);
+    document.getElementById(`cc-${q}-count`).textContent = tasksInQ.length;
+    document.getElementById(`cc-${q}`).innerHTML = tasksInQ.length === 0
+      ? '<div style="font-size:12px;color:var(--text3);font-style:italic;padding:0.5rem 0;">Sin tareas en este cuadrante</div>'
+      : tasksInQ.map(t => `
+          <div class="cons-task-item">
+            <div class="cons-task-name">${t.desc}</div>
+            <div class="cons-task-empresa">${t.empresa}</div>
+          </div>
+        `).join('');
+  });
+
+  // Barreras consolidadas
+  const barreraCount = {};
+  allRows.forEach(row => {
+    const b = row[COL.barrera];
+    if (b && b.trim()) {
+      barreraCount[b.trim()] = (barreraCount[b.trim()] || 0) + 1;
+    }
+  });
+  const maxB = Math.max(...Object.values(barreraCount), 1);
+  const sorted = Object.entries(barreraCount).sort((a,b) => b[1] - a[1]);
+
+  document.getElementById('cons-barreras').innerHTML = sorted.length === 0
+    ? '<div style="font-size:13px;color:var(--text3);">Sin datos de barreras todavía.</div>'
+    : sorted.map(([label, count]) => `
+        <div class="barrera-row">
+          <div class="barrera-label">${label}</div>
+          <div class="barrera-track">
+            <div class="barrera-fill" style="width:${(count/maxB)*100}%"></div>
+          </div>
+          <div class="barrera-count">${count}</div>
+        </div>
+      `).join('');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────
