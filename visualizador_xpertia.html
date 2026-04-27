@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPERTIA — Mapa Digital por Empresa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --surface: #12121A;
+    --surface2: #1A1A26;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #F0EEF8;
+    --text2: #9896B0;
+    --text3: #5C5A72;
+    --accent: #7F6FE8;
+    --accent2: #B8AEFF;
+
+    --zombi: #E85555;
+    --zombi-bg: rgba(232,85,85,0.1);
+    --zombi-border: rgba(232,85,85,0.25);
+
+    --cuello: #E8A035;
+    --cuello-bg: rgba(232,160,53,0.1);
+    --cuello-border: rgba(232,160,53,0.25);
+
+    --oro: #35C47A;
+    --oro-bg: rgba(53,196,122,0.1);
+    --oro-border: rgba(53,196,122,0.25);
+
+    --grasa: #6B6B7E;
+    --grasa-bg: rgba(107,107,126,0.1);
+    --grasa-border: rgba(107,107,126,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(127,111,232,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(53,196,122,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 3rem; padding-bottom: 1.5rem;
+    border-bottom: 0.5px solid var(--border2);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent2); }
+  .tagline { font-size: 12px; color: var(--text3); margin-top: 3px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* SEARCH / SELECTOR */
+  .search-section { margin-bottom: 2.5rem; }
+  .search-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 0.6rem;
+  }
+  .search-row { display: flex; gap: 0.75rem; align-items: stretch; }
+  .search-input {
+    flex: 1; background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: 10px; padding: 0.85rem 1.25rem;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text3); }
+
+  select.search-input { cursor: pointer; }
+  option { background: #1A1A26; }
+
+  .btn-load {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 10px;
+    padding: 0.85rem 1.75rem; font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .btn-load:hover { background: var(--accent2); color: var(--bg); transform: translateY(-1px); }
+
+  .btn-refresh {
+    background: var(--surface2); color: var(--text2);
+    border: 0.5px solid var(--border2); border-radius: 10px;
+    padding: 0.85rem 1.25rem; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-refresh:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* STATUS */
+  .status {
+    font-size: 12px; color: var(--text3); margin-top: 0.6rem;
+    min-height: 18px;
+  }
+  .status.ok { color: var(--oro); }
+  .status.err { color: var(--zombi); }
+
+  /* EMPRESA LIST */
+  .empresa-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .chip {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px;
+    border: 0.5px solid var(--border2); color: var(--text2);
+    cursor: pointer; transition: all 0.15s; background: var(--surface);
+  }
+  .chip:hover, .chip.active {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 500;
+  }
+
+  /* RESULT PANEL */
+  .result { display: none; animation: fadeUp 0.4s ease; }
+  .result.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* EMPRESA HEADER */
+  .empresa-header {
+    background: var(--surface);
+    border: 0.5px solid var(--border2);
+    border-radius: 16px; padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: flex-start; gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .empresa-avatar {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+    color: #fff; flex-shrink: 0;
+  }
+  .empresa-info h1 {
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700;
+    letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .empresa-meta { font-size: 13px; color: var(--text2); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .empresa-meta span { display: flex; align-items: center; gap: 5px; }
+
+  .barrier-tag {
+    margin-left: auto; align-self: center;
+    background: var(--zombi-bg); border: 0.5px solid var(--zombi-border);
+    border-radius: 8px; padding: 0.5rem 1rem;
+    font-size: 12px; color: var(--zombi); max-width: 260px;
+    text-align: right;
+  }
+  .barrier-tag strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; opacity: 0.7; }
+
+  /* MATRIX */
+  .matrix-section { margin-bottom: 1.5rem; }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
+    margin-bottom: 0.85rem;
+  }
+
+  .matrix-wrap { position: relative; }
+  .matrix-axes {
+    display: grid; grid-template-columns: 28px 1fr 1fr;
+    grid-template-rows: 1fr 1fr 28px;
+    gap: 6px; height: 340px;
+  }
+  .axis-v {
+    grid-row: 1 / 3; grid-column: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .axis-v span {
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text3); white-space: nowrap;
+  }
+  .axis-h {
+    grid-row: 3; grid-column: 2 / 4;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px;
+  }
+  .axis-h span { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); }
+
+  .quadrant {
+    border-radius: 12px; padding: 1rem;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.2s;
+  }
+  .quadrant:hover { transform: scale(1.01); }
+
+  .q-oro    { background: var(--oro-bg);    border: 0.5px solid var(--oro-border); }
+  .q-cuello { background: var(--cuello-bg); border: 0.5px solid var(--cuello-border); }
+  .q-grasa  { background: var(--grasa-bg);  border: 0.5px solid var(--grasa-border); }
+  .q-zombi  { background: var(--zombi-bg);  border: 0.5px solid var(--zombi-border); }
+
+  .q-label {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .q-oro .q-label    { color: var(--oro); }
+  .q-cuello .q-label { color: var(--cuello); }
+  .q-grasa .q-label  { color: var(--grasa); }
+  .q-zombi .q-label  { color: var(--zombi); }
+
+  .q-action {
+    font-size: 10px; color: var(--text3); margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .q-tasks { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+  .task-bubble {
+    background: rgba(255,255,255,0.04); border-radius: 8px;
+    padding: 0.5rem 0.65rem; font-size: 12px; color: var(--text);
+    border: 0.5px solid rgba(255,255,255,0.06);
+    line-height: 1.4; cursor: default;
+    transition: background 0.15s;
+  }
+  .task-bubble:hover { background: rgba(255,255,255,0.08); }
+  .task-bubble .tb-name { font-weight: 500; margin-bottom: 2px; }
+  .task-bubble .tb-score { font-size: 10px; color: var(--text3); }
+
+  .empty-q { font-size: 12px; color: var(--text3); font-style: italic; padding: 0.5rem 0; }
+
+  /* TASK CARDS */
+  .cards-section { margin-bottom: 1.5rem; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; }
+
+  .task-card {
+    background: var(--surface); border-radius: 14px;
+    padding: 1.25rem 1.5rem; border: 0.5px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .task-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 3px 0 0 3px;
+  }
+  .task-card.tc-zombi::before  { background: var(--zombi); }
+  .task-card.tc-cuello::before { background: var(--cuello); }
+  .task-card.tc-oro::before    { background: var(--oro); }
+  .task-card.tc-grasa::before  { background: var(--grasa); }
+
+  .tc-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 0.85rem; }
+  .tc-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .tc-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; line-height: 1.4; flex: 1; }
+  .tc-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 10px;
+    border-radius: 20px; white-space: nowrap; align-self: flex-start;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge-zombi  { background: var(--zombi-bg);  color: var(--zombi);  border: 0.5px solid var(--zombi-border); }
+  .badge-cuello { background: var(--cuello-bg); color: var(--cuello); border: 0.5px solid var(--cuello-border); }
+  .badge-oro    { background: var(--oro-bg);    color: var(--oro);    border: 0.5px solid var(--oro-border); }
+  .badge-grasa  { background: var(--grasa-bg);  color: var(--grasa);  border: 0.5px solid var(--grasa-border); }
+
+  .tc-scores { display: flex; gap: 1rem; margin-bottom: 0.85rem; }
+  .tc-score { text-align: center; }
+  .tc-score .val {
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+    line-height: 1;
+  }
+  .tc-score .lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  .tc-score-bar {
+    flex: 1; align-self: center;
+  }
+  .score-bar-track {
+    height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden; margin-bottom: 3px;
+  }
+  .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+  .tc-action {
+    background: var(--surface2); border-radius: 8px;
+    padding: 0.65rem 0.85rem; margin-bottom: 0.75rem;
+  }
+  .tc-action-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .tc-action-text { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  .tc-tools { }
+  .tools-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .tools-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tool-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    border: 0.5px solid var(--border2); color: var(--text2);
+    background: var(--surface2);
+  }
+
+  /* PRIORITY */
+  .priority-section { margin-bottom: 1.5rem; }
+  .priority-box {
+    background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .priority-icon { font-size: 28px; }
+  .priority-text h3 { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .priority-text p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .priority-text strong { color: var(--text); }
+
+  /* RUTA */
+  .ruta-section { margin-bottom: 2rem; }
+  .ruta-steps { display: flex; gap: 0; flex-wrap: wrap; }
+  .ruta-step {
+    flex: 1; min-width: 150px;
+    background: var(--surface); padding: 1rem 1.25rem;
+    border: 0.5px solid var(--border);
+    position: relative;
+  }
+  .ruta-step:first-child { border-radius: 12px 0 0 12px; }
+  .ruta-step:last-child  { border-radius: 0 12px 12px 0; }
+  .ruta-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -14px; top: 50%;
+    transform: translateY(-50%); color: var(--text3); font-size: 16px;
+    z-index: 2;
+  }
+  .ruta-num {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 4px;
+  }
+  .ruta-step h4 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .ruta-step p { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 4rem 2rem;
+    border: 0.5px dashed var(--border2); border-radius: 16px;
+  }
+  .empty-state .es-icon { font-size: 48px; margin-bottom: 1rem; }
+  .empty-state h2 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 14px; color: var(--text2); }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+
+  @media (max-width: 640px) {
+    .page { padding: 1rem; }
+    .matrix-axes { height: 260px; }
+    .empresa-header { flex-direction: column; }
+    .barrier-tag { margin-left: 0; text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo">X<span>IA</span> XPERTIA</div>
+      <div class="tagline">Mapa Digital · Visualizador por Empresa</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px; color:var(--text3);">Programa XPERTIA 2026</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:2px;">Cámara de Burgos</div>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-label">Selecciona una empresa para visualizar su mapa</div>
+    <div class="search-row">
+      <select class="search-input" id="empresaSelect">
+        <option value="">— Cargando datos... —</option>
+      </select>
+      <button class="btn-refresh" onclick="loadData()">↺ Actualizar</button>
+      <button class="btn-load" onclick="showEmpresa()">Ver mapa →</button>
+    </div>
+    <div class="status" id="statusMsg"></div>
+    <div class="empresa-chips" id="chips"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="result">
+
+    <div class="empresa-header" id="empresaHeader"></div>
+
+    <div class="cards-section">
+      <div class="section-title">Análisis de tareas</div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="section-title">Mapa de cuadrantes</div>
+      <div class="matrix-axes">
+        <div class="axis-v"><span>Alto valor → Bajo valor</span></div>
+        <div class="quadrant q-oro" id="q-oro">
+          <div class="q-label">🏆 Oro</div>
+          <div class="q-action">Potenciar con IA</div>
+          <div class="q-tasks" id="qt-oro"></div>
+        </div>
+        <div class="quadrant q-cuello" id="q-cuello">
+          <div class="q-label">⚡ Cuello de Botella</div>
+          <div class="q-action">Sistematizar</div>
+          <div class="q-tasks" id="qt-cuello"></div>
+        </div>
+        <div class="quadrant q-grasa" id="q-grasa">
+          <div class="q-label">🗑️ Grasa</div>
+          <div class="q-action">Eliminar</div>
+          <div class="q-tasks" id="qt-grasa"></div>
+        </div>
+        <div class="quadrant q-zombi" id="q-zombi">
+          <div class="q-label">🧟 Zombi</div>
+          <div class="q-action">Automatizar</div>
+          <div class="q-tasks" id="qt-zombi"></div>
+        </div>
+        <div class="axis-h">
+          <span>Baja frecuencia</span>
+          <span>Alta frecuencia</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="priority-section">
+      <div class="section-title">Prioridad declarada</div>
+      <div class="priority-box" id="priorityBox"></div>
+    </div>
+
+    <div class="ruta-section">
+      <div class="section-title">Ruta de acción sugerida</div>
+      <div class="ruta-steps" id="rutaSteps"></div>
+    </div>
+
+  </div>
+
+  <!-- EMPTY -->
+  <div class="empty-state" id="emptyState">
+    <div class="es-icon">🗺️</div>
+    <h2>Esperando respuestas</h2>
+    <p>Cuando los participantes envíen el formulario,<br>aparecerán aquí para proyectarlos en pantalla.</p>
+  </div>
+
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRB8hx8PhvsFyzRnxFiept9qgWwqk5ZuQmH89CybKubkkc5ENWbYefMm086uGQgkoQcBIvNtMHI7MXp/pub?gid=1421908603&single=true&output=csv';
+
+// ─── COLUMN MAPPING (exact header names from your sheet) ──────────────────
+const COL = {
+  timestamp:   'Marca temporal',
+  t1_desc:     'Tarea 1 — Describe la tarea en una frase: Ej: Confirmar citas por WhatsApp manualmente cada mañana.',
+  t1_freq:     'Tarea 1 — ¿Con qué frecuencia la haces?',
+  t1_valor:    'Tarea 1 — ¿Qué valor genera para tu negocio o cliente?',
+  t1_tipo:     'Tarea 1 — ¿De qué tipo es esta tarea?',
+  t2_desc:     'Tarea 2 — Describe la tarea en una frase: Ej: Confirmar citas por WhatsApp manualmente cada mañana.',
+  t2_freq:     'Tarea 2 — ¿Con qué frecuencia la haces?',
+  t2_valor:    'Tarea 2 — ¿Qué valor genera para tu negocio o cliente?',
+  t2_tipo:     'Tarea 2 — ¿De qué tipo es esta tarea?',
+  prioridad:   '¿Cuál es la tarea que más tiempo te roba cada semana?',
+  barrera:     '¿Qué te impide digitalizar o mejorar ese proceso ahora mismo?',
+  nombre:      'Nombre de la Persona y Empresa : Ejmplo : Johanna - Catalyst Partner Tech'
+};
+
+// ─── TOOL SUGGESTIONS ─────────────────────────────────────────────────────
+const TOOLS = {
+  'Comunicación con clientes o leads': {
+    zombi:  { action:'Automatizar respuestas y seguimiento', tools:['Manychat','Tidio','WhatsApp Business API','n8n + GPT'] },
+    cuello: { action:'Centralizar y sistematizar el pipeline', tools:['HubSpot','Pipedrive','Zoho CRM'] },
+    oro:    { action:'Personalizar a escala con IA', tools:['Claude','ChatGPT','Gemini'] },
+    grasa:  { action:'Eliminar comunicaciones sin retorno', tools:[] }
+  },
+  'Gestión documental y archivos': {
+    zombi:  { action:'Clasificación y archivo automático', tools:['Google Drive + Gemini','Microsoft Copilot','n8n + OpenAI'] },
+    cuello: { action:'Flujo de aprobación sistematizado', tools:['Notion AI','Make','SharePoint'] },
+    oro:    { action:'Generación inteligente de documentos', tools:['Claude','ChatGPT','Notion AI'] },
+    grasa:  { action:'Eliminar documentación que nadie lee', tools:[] }
+  },
+  'Facturación y contabilidad': {
+    zombi:  { action:'Extracción automática de datos', tools:['Dext','Rossum','Copilot en Excel','Make + Sheets'] },
+    cuello: { action:'Proceso de cierre sistematizado', tools:['Holded','Alegra','Odoo'] },
+    oro:    { action:'Análisis financiero con IA', tools:['Power BI','Excel + Copilot','Looker Studio'] },
+    grasa:  { action:'Simplificar aprobaciones innecesarias', tools:[] }
+  },
+  'Generación de contenido o propuestas': {
+    zombi:  { action:'Automatizar adaptación de formatos', tools:['Claude','ChatGPT','Canva AI','Opus Clip'] },
+    cuello: { action:'Sistematizar el proceso creativo', tools:['Notion AI','Gamma.app','Miro AI'] },
+    oro:    { action:'Potenciar con IA generativa', tools:['Claude','GPT-4o','Gemini','Midjourney'] },
+    grasa:  { action:'Eliminar contenido sin audiencia', tools:[] }
+  },
+  'Análisis de datos e informes': {
+    zombi:  { action:'Automatizar recopilación de métricas', tools:['Looker Studio','Power BI','Make + Sheets'] },
+    cuello: { action:'Dashboard en tiempo real', tools:['Power BI','Tableau','Looker Studio'] },
+    oro:    { action:'Predicción y ML accesible', tools:['DataRobot','Azure AI','Vertex AI','Excel + Copilot'] },
+    grasa:  { action:'Eliminar informes que nadie lee', tools:[] }
+  },
+  'Coordinación entre personas o áreas': {
+    zombi:  { action:'Automatizar notificaciones y traspasos', tools:['Make','n8n','Zapier','Power Automate'] },
+    cuello: { action:'Tablero compartido en tiempo real', tools:['monday.com','Asana','Notion','Trello'] },
+    oro:    { action:'IA para toma de decisiones conjunta', tools:['Miro AI','Claude','ChatGPT'] },
+    grasa:  { action:'Eliminar reuniones sin agenda', tools:[] }
+  },
+  'Atención al cliente o soporte': {
+    zombi:  { action:'Agente IA de primer contacto', tools:['Tidio AI','Intercom AI','Claude API','n8n + GPT'] },
+    cuello: { action:'Sistema de tickets sistematizado', tools:['Zendesk','Freshdesk','HubSpot Service'] },
+    oro:    { action:'Personalización proactiva con IA', tools:['Claude','ChatGPT Enterprise','Gemini'] },
+    grasa:  { action:'Eliminar soporte sin valor', tools:[] }
+  },
+  'Gestión de agenda y citas': {
+    zombi:  { action:'Agendamiento automático 24/7', tools:['Calendly','SimplyBook','TidyCal','n8n'] },
+    cuello: { action:'Coordinación de agenda centralizada', tools:['Google Calendar + Gemini','Copilot','Cal.com'] },
+    oro:    { action:'Predicción de demanda de citas', tools:['Odoo AI','DataRobot','Azure AI'] },
+    grasa:  { action:'Eliminar confirmaciones manuales', tools:[] }
+  },
+  'Seguimiento comercial o CRM': {
+    zombi:  { action:'Automatizar seguimiento y recordatorios', tools:['HubSpot','Pipedrive','n8n + CRM'] },
+    cuello: { action:'Pipeline comercial sistematizado', tools:['HubSpot','Salesforce','Zoho CRM'] },
+    oro:    { action:'Predicción de cierre con ML', tools:['Salesforce Einstein','HubSpot AI','DataRobot'] },
+    grasa:  { action:'Eliminar prospectos sin calificar', tools:[] }
+  },
+  'Formación o transferencia de conocimiento': {
+    zombi:  { action:'Automatizar envío de materiales', tools:['360Learning','Make + LMS','Notion AI'] },
+    cuello: { action:'LMS con rutas adaptativas', tools:['360Learning','Cornerstone','Moodle + IA'] },
+    oro:    { action:'Contenido formativo generado con IA', tools:['Claude','ChatGPT','Gamma.app','Canva AI'] },
+    grasa:  { action:'Eliminar formación sin impacto medido', tools:[] }
+  },
+  'Otra': {
+    zombi:  { action:'Automatizar con herramientas sin código', tools:['Make','n8n','Zapier'] },
+    cuello: { action:'Sistematizar el proceso crítico', tools:['Notion','monday.com','Claude'] },
+    oro:    { action:'Potenciar con IA generativa', tools:['Claude','ChatGPT','Gemini'] },
+    grasa:  { action:'Evaluar si realmente es necesaria', tools:[] }
+  }
+};
+
+const DEFAULT_TOOLS = {
+  zombi:  { action:'Automatizar con herramientas sin código', tools:['Make','n8n','Zapier','Claude'] },
+  cuello: { action:'Sistematizar el proceso', tools:['Notion AI','monday.com','HubSpot'] },
+  oro:    { action:'Potenciar con IA generativa', tools:['Claude','ChatGPT','Gemini'] },
+  grasa:  { action:'Evaluar si realmente es necesaria', tools:[] }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────
+let allRows = [];
+let headers = [];
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const hdrs = parseCSVLine(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const vals = parseCSVLine(lines[i]);
+    const obj = {};
+    hdrs.forEach((h, idx) => { obj[h.trim()] = (vals[idx] || '').trim(); });
+    rows.push(obj);
+  }
+  return { hdrs, rows };
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else { inQ = !inQ; }
+    } else if (c === ',' && !inQ) {
+      result.push(cur); cur = '';
+    } else { cur += c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+// ─── CLASSIFICATION ───────────────────────────────────────────────────────
+function classify(freq, valor) {
+  const f = parseInt(freq) || 0;
+  const v = parseInt(valor) || 0;
+  if (f >= 4 && v <= 2) return 'zombi';
+  if (f >= 4 && v >= 3) return 'cuello';
+  if (f <= 3 && v >= 4) return 'oro';
+  return 'grasa';
+}
+
+function getQuadrantInfo(quad) {
+  const map = {
+    zombi:  { label:'🧟 Zombi',           color:'var(--zombi)',  badgeClass:'badge-zombi',  cardClass:'tc-zombi' },
+    cuello: { label:'⚡ Cuello de Botella', color:'var(--cuello)', badgeClass:'badge-cuello', cardClass:'tc-cuello' },
+    oro:    { label:'🏆 Oro',              color:'var(--oro)',    badgeClass:'badge-oro',    cardClass:'tc-oro' },
+    grasa:  { label:'🗑️ Grasa',            color:'var(--grasa)',  badgeClass:'badge-grasa',  cardClass:'tc-grasa' }
+  };
+  return map[quad] || map.grasa;
+}
+
+function getTools(tipo, quad) {
+  const t = TOOLS[tipo] || DEFAULT_TOOLS;
+  const section = t[quad] || (DEFAULT_TOOLS[quad]);
+  return section || { action: 'Revisar manualmente', tools: [] };
+}
+
+// ─── LOAD DATA ────────────────────────────────────────────────────────────
+async function loadData() {
+  const msg = document.getElementById('statusMsg');
+  const sel = document.getElementById('empresaSelect');
+  msg.textContent = 'Cargando datos del Sheet...';
+  msg.className = 'status';
+
+  try {
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(CSV_URL)}`;
+    const res = await fetch(proxy);
+    const json = await res.json();
+    const { hdrs, rows } = parseCSV(json.contents);
+    headers = hdrs;
+    allRows = rows.filter(r => r[COL.nombre] && r[COL.nombre].trim());
+
+    if (allRows.length === 0) {
+      msg.textContent = '⚠️ No hay respuestas todavía en el formulario.';
+      msg.className = 'status err';
+      document.getElementById('emptyState').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('emptyState').style.display = 'none';
+
+    // populate select
+    sel.innerHTML = '<option value="">— Elige una empresa —</option>';
+    const chips = document.getElementById('chips');
+    chips.innerHTML = '';
+
+    allRows.forEach((row, i) => {
+      const nombre = row[COL.nombre];
+      const opt = document.createElement('option');
+      opt.value = i; opt.textContent = nombre;
+      sel.appendChild(opt);
+
+      const chip = document.createElement('div');
+      chip.className = 'chip'; chip.textContent = nombre;
+      chip.onclick = () => { sel.value = i; showEmpresa(); };
+      chips.appendChild(chip);
+    });
+
+    msg.textContent = `✓ ${allRows.length} respuesta${allRows.length > 1 ? 's' : ''} cargada${allRows.length > 1 ? 's' : ''}`;
+    msg.className = 'status ok';
+
+  } catch(e) {
+    msg.textContent = '✗ Error al cargar. Verifica que el Sheet está publicado como CSV.';
+    msg.className = 'status err';
+    console.error(e);
+  }
+}
+
+// ─── SHOW EMPRESA ─────────────────────────────────────────────────────────
+function showEmpresa() {
+  const sel = document.getElementById('empresaSelect');
+  const idx = sel.value;
+  if (idx === '') return;
+
+  const row = allRows[parseInt(idx)];
+  const nombre = row[COL.nombre];
+
+  // update chips
+  document.querySelectorAll('.chip').forEach((c,i) => {
+    c.classList.toggle('active', i === parseInt(idx));
+  });
+
+  // parse tasks
+  const tasks = [
+    { desc: row[COL.t1_desc], freq: row[COL.t1_freq], valor: row[COL.t1_valor], tipo: row[COL.t1_tipo], num: 1 },
+    { desc: row[COL.t2_desc], freq: row[COL.t2_freq], valor: row[COL.t2_valor], tipo: row[COL.t2_tipo], num: 2 }
+  ].filter(t => t.desc && t.desc.trim());
+
+  // classify
+  tasks.forEach(t => {
+    t.quad = classify(t.freq, t.valor);
+    t.qi = getQuadrantInfo(t.quad);
+    t.toolInfo = getTools(t.tipo, t.quad);
+  });
+
+  // ── EMPRESA HEADER ──
+  const initials = nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const barrera = row[COL.barrera] || '';
+  const prioridad = row[COL.prioridad] || '';
+
+  document.getElementById('empresaHeader').innerHTML = `
+    <div class="empresa-avatar">${initials.slice(0,2)}</div>
+    <div class="empresa-info">
+      <h1>${nombre}</h1>
+      <div class="empresa-meta">
+        <span>📅 ${row[COL.timestamp] ? row[COL.timestamp].split(' ')[0] : 'Hoy'}</span>
+        <span>📝 ${tasks.length} tarea${tasks.length > 1 ? 's' : ''} analizada${tasks.length > 1 ? 's' : ''}</span>
+      </div>
+    </div>
+    ${barrera ? `<div class="barrier-tag"><strong>Barrera declarada</strong>${barrera}</div>` : ''}
+  `;
+
+  // ── TASK CARDS ──
+  const cardsGrid = document.getElementById('cardsGrid');
+  cardsGrid.innerHTML = '';
+
+  tasks.forEach(t => {
+    const fNum = parseInt(t.freq) || 0;
+    const vNum = parseInt(t.valor) || 0;
+    const toolsHTML = t.toolInfo.tools.length
+      ? t.toolInfo.tools.map(tool => `<span class="tool-chip">${tool}</span>`).join('')
+      : '<span style="font-size:12px;color:var(--text3);font-style:italic;">Eliminar directamente</span>';
+
+    const fColor = fNum >= 4 ? 'var(--zombi)' : fNum >= 3 ? 'var(--cuello)' : 'var(--oro)';
+    const vColor = vNum >= 4 ? 'var(--oro)' : vNum >= 3 ? 'var(--cuello)' : 'var(--text3)';
+
+    cardsGrid.innerHTML += `
+      <div class="task-card ${t.qi.cardClass}">
+        <div class="tc-top">
+          <div class="tc-icon">${t.qi.label.split(' ')[0]}</div>
+          <div class="tc-title">Tarea ${t.num}: ${t.desc}</div>
+          <div class="tc-badge ${t.qi.badgeClass}">${t.quad}</div>
+        </div>
+        <div class="tc-scores">
+          <div class="tc-score">
+            <div class="val" style="color:${fColor}">${fNum}</div>
+            <div class="lbl">Frecuencia</div>
+          </div>
+          <div class="tc-score-bar">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Frecuencia</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:${fNum*20}%;background:${fColor}"></div></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:6px;">Valor</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:${vNum*20}%;background:${vColor}"></div></div>
+          </div>
+          <div class="tc-score">
+            <div class="val" style="color:${vColor}">${vNum}</div>
+            <div class="lbl">Valor</div>
+          </div>
+        </div>
+        ${t.tipo ? `<div style="font-size:11px;color:var(--text3);margin-bottom:0.75rem;">Tipo: ${t.tipo}</div>` : ''}
+        <div class="tc-action">
+          <div class="tc-action-label">Acción recomendada</div>
+          <div class="tc-action-text">${t.toolInfo.action}</div>
+        </div>
+        <div class="tc-tools">
+          <div class="tools-label">Herramientas sugeridas</div>
+          <div class="tools-list">${toolsHTML}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // ── MATRIX ──
+  ['zombi','cuello','oro','grasa'].forEach(q => {
+    const el = document.getElementById(`qt-${q}`);
+    const inQ = tasks.filter(t => t.quad === q);
+    if (inQ.length === 0) {
+      el.innerHTML = '<div class="empty-q">Sin tareas en este cuadrante</div>';
+    } else {
+      el.innerHTML = inQ.map(t => `
+        <div class="task-bubble">
+          <div class="tb-name">Tarea ${t.num}: ${t.desc.slice(0,55)}${t.desc.length > 55 ? '...' : ''}</div>
+          <div class="tb-score">F:${t.freq}/5 · V:${t.valor}/5</div>
+        </div>
+      `).join('');
+    }
+  });
+
+  // ── PRIORITY ──
+  const zombis = tasks.filter(t => t.quad === 'zombi');
+  const cuellos = tasks.filter(t => t.quad === 'cuello');
+  const priorityBox = document.getElementById('priorityBox');
+
+  let priorityHTML = '';
+  if (prioridad) {
+    priorityHTML = `
+      <div class="priority-icon">⏱️</div>
+      <div class="priority-text">
+        <h3>Tarea que más tiempo roba</h3>
+        <p><strong>${prioridad}</strong></p>
+      </div>
+    `;
+  } else if (zombis.length > 0) {
+    const z = zombis[0];
+    priorityHTML = `
+      <div class="priority-icon">🧟</div>
+      <div class="priority-text">
+        <h3>Zombi prioritario detectado</h3>
+        <p>Tarea ${z.num}: <strong>${z.desc}</strong> — automatizar primero con <strong>${z.toolInfo.tools[0] || 'herramienta sin código'}</strong></p>
+      </div>
+    `;
+  } else if (cuellos.length > 0) {
+    const c = cuellos[0];
+    priorityHTML = `
+      <div class="priority-icon">⚡</div>
+      <div class="priority-text">
+        <h3>Cuello de Botella crítico</h3>
+        <p>Tarea ${c.num}: <strong>${c.desc}</strong> — sistematizar con <strong>${c.toolInfo.tools[0] || 'herramienta de flujo'}</strong></p>
+      </div>
+    `;
+  } else {
+    priorityHTML = `
+      <div class="priority-icon">✅</div>
+      <div class="priority-text">
+        <h3>Perfil equilibrado</h3>
+        <p>Las tareas analizadas son de alto valor. Foco en potenciar con IA generativa.</p>
+      </div>
+    `;
+  }
+  priorityBox.innerHTML = priorityHTML;
+
+  // ── RUTA ──
+  const rutaSteps = document.getElementById('rutaSteps');
+  const steps = [];
+
+  if (zombis.length > 0) {
+    steps.push({
+      num: '01 · Primero',
+      title: 'Elimina el Zombi',
+      desc: `Automatiza "${zombis[0].desc.slice(0,40)}..." con ${zombis[0].toolInfo.tools[0] || 'herramienta sin código'}`
+    });
+  }
+  if (cuellos.length > 0) {
+    steps.push({
+      num: steps.length === 0 ? '01 · Primero' : '02 · Segundo',
+      title: 'Destapa el Cuello',
+      desc: `Sistematiza "${cuellos[0].desc.slice(0,40)}..." con ${cuellos[0].toolInfo.tools[0] || 'herramienta de flujo'}`
+    });
+  }
+  steps.push({
+    num: `0${steps.length + 1} · Después`,
+    title: 'Mide en 30 días',
+    desc: 'Horas ahorradas, errores reducidos o tiempo de respuesta mejorado'
+  });
+  steps.push({
+    num: `0${steps.length + 1} · Luego`,
+    title: 'Escala con IA',
+    desc: 'Con el proceso ordenado, añade inteligencia artificial encima'
+  });
+
+  rutaSteps.innerHTML = steps.map(s => `
+    <div class="ruta-step">
+      <div class="ruta-num">${s.num}</div>
+      <h4>${s.title}</h4>
+      <p>${s.desc}</p>
+    </div>
+  `).join('');
+
+  // show
+  document.getElementById('result').className = 'result visible';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+loadData();
+setInterval(loadData, 60000); // auto-refresh every 60s
+</script>
+</body>
+</html>
