@@ -3,36 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XPERTIA — Mapa Digital por Empresa</title>
+<title>Transformación Digital — Mapa por Empresa</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0A0A0F;
-    --surface: #12121A;
-    --surface2: #1A1A26;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #F0EEF8;
-    --text2: #9896B0;
-    --text3: #5C5A72;
-    --accent: #7F6FE8;
-    --accent2: #B8AEFF;
+    --bg: #FFFFFF;
+    --surface: #F7F7FA;
+    --surface2: #EFEFF5;
+    --border: rgba(0,0,0,0.07);
+    --border2: rgba(0,0,0,0.12);
+    --text: #0F0E1A;
+    --text2: #5A5870;
+    --text3: #9896B0;
+    --accent: #5B4FCC;
+    --accent2: #3D32A0;
 
-    --zombi: #E85555;
-    --zombi-bg: rgba(232,85,85,0.1);
-    --zombi-border: rgba(232,85,85,0.25);
+    --zombi: #C93535;
+    --zombi-bg: rgba(201,53,53,0.07);
+    --zombi-border: rgba(201,53,53,0.2);
 
-    --cuello: #E8A035;
-    --cuello-bg: rgba(232,160,53,0.1);
-    --cuello-border: rgba(232,160,53,0.25);
+    --cuello: #C47A10;
+    --cuello-bg: rgba(196,122,16,0.07);
+    --cuello-border: rgba(196,122,16,0.2);
 
-    --oro: #35C47A;
-    --oro-bg: rgba(53,196,122,0.1);
-    --oro-border: rgba(53,196,122,0.25);
+    --oro: #1A9B5A;
+    --oro-bg: rgba(26,155,90,0.07);
+    --oro-border: rgba(26,155,90,0.2);
 
     --grasa: #6B6B7E;
-    --grasa-bg: rgba(107,107,126,0.1);
-    --grasa-border: rgba(107,107,126,0.25);
+    --grasa-bg: rgba(107,107,126,0.07);
+    --grasa-border: rgba(107,107,126,0.2);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,15 +45,7 @@
     overflow-x: hidden;
   }
 
-  /* BG texture */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(127,111,232,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(53,196,122,0.05) 0%, transparent 50%);
-    pointer-events: none; z-index: 0;
-  }
+  body::before { display: none; }
 
   .page { position: relative; z-index: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; }
 
@@ -89,7 +81,7 @@
   .search-input::placeholder { color: var(--text3); }
 
   select.search-input { cursor: pointer; }
-  option { background: #1A1A26; }
+  option { background: #FFFFFF; color: #0F0E1A; }
 
   .btn-load {
     background: var(--accent); color: #fff;
@@ -366,12 +358,11 @@
   <!-- HEADER -->
   <div class="header">
     <div>
-      <div class="logo">X<span>IA</span> XPERTIA</div>
-      <div class="tagline">Mapa Digital · Visualizador por Empresa</div>
+      <div class="logo">Transformación <span>Digital</span></div>
+      <div class="tagline">Mapa de procesos · Visualizador por Empresa</div>
     </div>
     <div style="text-align:right;">
-      <div style="font-size:12px; color:var(--text3);">Programa XPERTIA 2026</div>
-      <div style="font-size:11px; color:var(--text3); margin-top:2px;">Cámara de Burgos</div>
+      <div style="font-size:12px; color:var(--text3);">Programa 2026</div>
     </div>
   </div>
 
