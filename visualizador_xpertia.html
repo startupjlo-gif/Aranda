@@ -608,9 +608,11 @@ function getTools(tipo, quad) {
 async function fetchCSV() {
   const res = await fetch(CSV_URL, { redirect: 'follow' });
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
-  const text = await res.text();
+  let text = await res.text();
+  // Limpiar BOM y caracteres invisibles al inicio
+  text = text.replace(/^\uFEFF/, '').replace(/^\u00EF\u00BB\u00BF/, '').trim();
   console.log('📄 CSV primeros 300 chars:', text.slice(0, 300));
-  if (!text || text.trim().length < 10) throw new Error('Respuesta vacía');
+  if (!text || text.length < 10) throw new Error('Respuesta vacía');
   return text;
 }
 
@@ -643,13 +645,20 @@ async function loadData() {
     console.log('✅ Columnas resueltas:', COL);
 
     allRows = rows.filter(r => {
-      const n = COL.nombre ? r[COL.nombre] : '';
-      return n && n.trim() !== '';
+      // Intentar con COL.nombre primero
+      if (COL.nombre && r[COL.nombre] && r[COL.nombre].trim()) return true;
+      // Fallback: buscar cualquier columna que contenga "nombre" en su key
+      const fallbackKey = Object.keys(r).find(k => k.toLowerCase().includes('nombre'));
+      if (fallbackKey && r[fallbackKey] && r[fallbackKey].trim()) {
+        COL.nombre = fallbackKey; // corregir para el resto
+        return true;
+      }
+      return false;
     });
 
-    // Debug temporal
     console.log('Total filas raw:', rows.length, '| Con nombre:', allRows.length);
-    if (rows.length > 0) console.log('Fila 0 nombre campo:', COL.nombre, '=', rows[0][COL.nombre]);
+    console.log('COL.nombre resuelto:', COL.nombre);
+    if (rows[0]) console.log('Keys fila 0:', Object.keys(rows[0]));
 
     if (allRows.length === 0) {
       msg.textContent = '⚠️ No hay respuestas todavía en el formulario.';
