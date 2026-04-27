@@ -641,6 +641,14 @@ async function loadData() {
     };
     console.log('✅ Columnas resueltas:', COL);
 
+    // DEBUG VISUAL — muestra en pantalla los datos crudos
+    document.getElementById('statusMsg').innerHTML =
+      '<pre style="font-size:10px;color:#9F9;text-align:left;white-space:pre-wrap;max-height:300px;overflow:auto">' +
+      'HEADERS:\n' + hdrs.join('\n') +
+      '\n\nFILA 1:\n' + JSON.stringify(rows[0], null, 2) +
+      '\n\nCOL:\n' + JSON.stringify(COL, null, 2) +
+      '</pre>';
+
     allRows = rows.filter(r => r[COL.nombre] && r[COL.nombre].trim());
 
     if (allRows.length === 0) {
