@@ -456,20 +456,15 @@
 const CSV_URL = 'https://script.google.com/macros/s/AKfycbzqukE7WkskPuoR-NQt5tiQJ3I9Tw57HHycMXgQ3k_rPs6x2-qEAGDSN776q-wn6BzvJQ/exec';
 
 // ─── COLUMN MAPPING (exact header names from your sheet) ──────────────────
-const COL = {
-  timestamp:   'Marca temporal',
-  t1_desc:     'Tarea 1 — Describe la tarea en una frase: Ej: Confirmar citas por WhatsApp manualmente cada mañana.',
-  t1_freq:     'Tarea 1 — ¿Con qué frecuencia la haces?',
-  t1_valor:    'Tarea 1 — ¿Qué valor genera para tu negocio o cliente?',
-  t1_tipo:     'Tarea 1 — ¿De qué tipo es esta tarea?',
-  t2_desc:     'Tarea 2 — Describe la tarea en una frase: Ej: Confirmar citas por WhatsApp manualmente cada mañana.',
-  t2_freq:     'Tarea 2 — ¿Con qué frecuencia la haces?',
-  t2_valor:    'Tarea 2 — ¿Qué valor genera para tu negocio o cliente?',
-  t2_tipo:     'Tarea 2 — ¿De qué tipo es esta tarea?',
-  prioridad:   '¿Cuál es la tarea que más tiempo te roba cada semana?',
-  barrera:     '¿Qué te impide digitalizar o mejorar ese proceso ahora mismo?',
-  nombre:      'Nombre de la Persona y Empresa : Ejmplo : Johanna - Catalyst Partner Tech'
-};
+// Mapeo flexible — busca por coincidencia parcial para evitar problemas con
+// caracteres especiales, tildes y espacios en los encabezados del Sheet
+function findCol(headers, keyword) {
+  const kw = keyword.toLowerCase().trim();
+  return headers.find(h => h.toLowerCase().includes(kw)) || '';
+}
+
+// Se resuelve dinámicamente después de leer los headers
+let COL = {};
 
 // ─── TOOL SUGGESTIONS ─────────────────────────────────────────────────────
 const TOOLS = {
@@ -628,6 +623,24 @@ async function loadData() {
     const csvText = await fetchCSV();
     const { hdrs, rows } = parseCSV(csvText);
     headers = hdrs;
+
+    // Resolver columnas dinámicamente por coincidencia parcial
+    COL = {
+      timestamp: hdrs.find(h => h.toLowerCase().includes('marca temporal')) || hdrs[0],
+      t1_desc:   hdrs.find(h => h.toLowerCase().includes('tarea 1') && h.toLowerCase().includes('describe')),
+      t1_freq:   hdrs.find(h => h.toLowerCase().includes('tarea 1') && h.toLowerCase().includes('frecuencia')),
+      t1_valor:  hdrs.find(h => h.toLowerCase().includes('tarea 1') && h.toLowerCase().includes('valor')),
+      t1_tipo:   hdrs.find(h => h.toLowerCase().includes('tarea 1') && h.toLowerCase().includes('tipo')),
+      t2_desc:   hdrs.find(h => h.toLowerCase().includes('tarea 2') && h.toLowerCase().includes('describe')),
+      t2_freq:   hdrs.find(h => h.toLowerCase().includes('tarea 2') && h.toLowerCase().includes('frecuencia')),
+      t2_valor:  hdrs.find(h => h.toLowerCase().includes('tarea 2') && h.toLowerCase().includes('valor')),
+      t2_tipo:   hdrs.find(h => h.toLowerCase().includes('tarea 2') && h.toLowerCase().includes('tipo')),
+      prioridad: hdrs.find(h => h.toLowerCase().includes('roba')),
+      barrera:   hdrs.find(h => h.toLowerCase().includes('impide')),
+      nombre:    hdrs.find(h => h.toLowerCase().includes('nombre'))
+    };
+    console.log('✅ Columnas resueltas:', COL);
+
     allRows = rows.filter(r => r[COL.nombre] && r[COL.nombre].trim());
 
     if (allRows.length === 0) {
