@@ -606,10 +606,11 @@ function getTools(tipo, quad) {
 
 // ─── LOAD DATA — directo via Apps Script (sin proxies externos) ───────────
 async function fetchCSV() {
-  const res = await fetch(CSV_URL);
+  const res = await fetch(CSV_URL, { redirect: 'follow' });
   if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
   const text = await res.text();
-  if (!text || !text.includes(',')) throw new Error('Respuesta vacía o inválida');
+  console.log('📄 CSV primeros 300 chars:', text.slice(0, 300));
+  if (!text || text.trim().length < 10) throw new Error('Respuesta vacía');
   return text;
 }
 
@@ -641,15 +642,14 @@ async function loadData() {
     };
     console.log('✅ Columnas resueltas:', COL);
 
-    // DEBUG VISUAL — muestra en pantalla los datos crudos
-    document.getElementById('statusMsg').innerHTML =
-      '<pre style="font-size:10px;color:#9F9;text-align:left;white-space:pre-wrap;max-height:300px;overflow:auto">' +
-      'HEADERS:\n' + hdrs.join('\n') +
-      '\n\nFILA 1:\n' + JSON.stringify(rows[0], null, 2) +
-      '\n\nCOL:\n' + JSON.stringify(COL, null, 2) +
-      '</pre>';
+    allRows = rows.filter(r => {
+      const n = COL.nombre ? r[COL.nombre] : '';
+      return n && n.trim() !== '';
+    });
 
-    allRows = rows.filter(r => r[COL.nombre] && r[COL.nombre].trim());
+    // Debug temporal
+    console.log('Total filas raw:', rows.length, '| Con nombre:', allRows.length);
+    if (rows.length > 0) console.log('Fila 0 nombre campo:', COL.nombre, '=', rows[0][COL.nombre]);
 
     if (allRows.length === 0) {
       msg.textContent = '⚠️ No hay respuestas todavía en el formulario.';
